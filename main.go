@@ -37,7 +37,10 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 
+	var 
+	wg.Add(1)
 	go copyToFile(f, file)
+	wg.
 }
 
 func main() {
