@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"sync"
 )
 
 var FileDirectory = "./files/"
@@ -37,10 +38,9 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 
-	var 
+	var wg sync.WaitGroup
 	wg.Add(1)
 	go copyToFile(f, file)
-	wg.
 }
 
 func main() {
