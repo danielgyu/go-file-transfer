@@ -8,16 +8,23 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"text/template"
 )
 
 var FileDirectory = "./files/"
 
 func index(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("index"))
+	template, err := template.ParseFiles("upload.html")
+	if err != nil {
+		log.Println("Error loading static html")
+	}
+
+	template.Execute(w, nil)
 }
 
-func copyToFile(dst *os.File, src multipart.File) {
+func copyToFile(dst *os.File, src multipart.File, wg *sync.WaitGroup) {
 	io.Copy(dst, src)
+	wg.Done()
 }
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
@@ -38,14 +45,16 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 
-	var wg sync.WaitGroup
+	var wg = new(sync.WaitGroup)
 	wg.Add(1)
-	go copyToFile(f, file)
+	go copyToFile(f, file, wg)
+	wg.Wait()
 }
 
 func main() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/upload", uploadFile)
 
+	log.Println("Serving file server at port 8000")
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
